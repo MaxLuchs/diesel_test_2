@@ -1,0 +1,20 @@
+[package]
+name = "diesel-test-3"
+version = "0.1.0"
+authors = ["maxluchs"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[dependencies]
+diesel = { version = "1.4.5", features = ["postgres", "r2d2"] }
+r2d2 = "0.8.9"
+dotenv = "0.15.0"
+eyre = "0.6.5"
+failure = "0.1.8"
+env_logger = "0.8.3"
+log = "0.4.14"
