@@ -33,9 +33,21 @@ struct Participation {
     course_id: i32,
 }
 
+#[derive(Debug, Queryable)]
+struct UserCourse {
+    user: User,
+    participation: ParticipationCourse
+}
+
+#[derive(Debug, Queryable)]
+struct ParticipationCourse {
+    participation: Participation,
+    course: Course
+}
+
 fn main() -> std::result::Result<(), Box<dyn Error>> {
     dotenv().ok().unwrap();
-    env_logger::init();
+    pretty_env_logger::init();
     let db_url = std::env::var("DATABASE_URL").unwrap();
     let mngr = ConnectionManager::new(db_url);
     let pool: Pool<ConnectionManager<diesel::pg::PgConnection>> = r2d2::Pool::new(mngr).expect("Conn pool error");
@@ -53,9 +65,30 @@ fn main() -> std::result::Result<(), Box<dyn Error>> {
     ).inner_join(schema::participations::table.inner_join(schema::courses::table)).load::<(User, (Participation, Course))>(con)?;
     info!("luthers_courses {:?}", luthers_courses);
 
-    let saras_courses = schema::users::table.filter(schema::users::name.eq("Sara")
-    ).inner_join(schema::participations::table.inner_join(schema::courses::table)).load::<(User, (Participation, Course))>(con)?;
-    info!("saras_courses {:?}", saras_courses);
+    let saras_courses_tuples = schema::users::table
+        .inner_join(
+            schema::participations::table.inner_join(
+                schema::courses::table)
+        )
+        .filter(schema::users::name.eq("Sara")).load::<(User, (Participation, Course))>(con)?;
+    info!("saras_courses {:?}", saras_courses_tuples);
+
+
+    let saras_courses_struct = schema::users::table
+        .inner_join(
+        schema::participations::table.inner_join(
+            schema::courses::table)
+    )
+      .filter(schema::users::name.eq("Sara")).load::<UserCourse>(con)?;
+    info!("saras_courses {:?}", saras_courses_struct);
+
+    let saras_courses_titles = schema::users::table
+        .inner_join(
+            schema::participations::table.inner_join(
+                schema::courses::table)
+        )
+        .filter(schema::users::name.eq("Sara")).select((schema::users::name, schema::courses::title)).load::<(String, String)>(con)?;
+    info!("saras_courses titles {:?}", saras_courses_titles);
 
     let courses = schema::courses::table.get_results::<Course>(con)?;
     info!("courses {:?}", courses);
